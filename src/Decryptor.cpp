@@ -28,8 +28,6 @@ int main()
 
     auto hmodQt5Core = LoadLibraryA("Qt5Core.dll");
     auto hmodQt5Sql = LoadLibraryA("Qt5Sql.dll");
-    auto hmodQSqlite = LoadLibraryA("QSqlite.dll");
-
 
     hmod = hmodQt5Core;
     symbolName = "?fromAscii_helper@QString@@CAPAU?$QTypedArrayData@G@@PBDH@Z";
@@ -54,10 +52,6 @@ int main()
     auto fnQSqlDatabase_open = (LPVOID)GetProcAddress(hmod, symbolName);
 
 //------------------------------------------------------------
-
-    auto p1 = (LPBYTE)hmodQt5Core + 0x3f0b0;
-    p1 = (LPBYTE)hmodQt5Core + 0xfae7c;
-    
 
     len = lstrlenA((*pQSqlDatabase_defaultConn));
     auto qstrDbConn = fnQStringFromAsciiHelper((*pQSqlDatabase_defaultConn), len);
