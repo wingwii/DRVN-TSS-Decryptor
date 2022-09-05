@@ -1,10 +1,5 @@
 #include <windows.h>
 
-__interface IQSqlDatabase
-{
-    void Dummy();
-};
-
 int main()
 {
     auto dbPasswd = "db161602241ec0dcc682d0ff6d481db010c686";
@@ -43,7 +38,7 @@ int main()
     typedef LPVOID(*QSQLDATABASE_ADD_DATABASE_1)(LPVOID, LPVOID, LPVOID);
     auto fnQSqlDatabase_addDatabase1 = (QSQLDATABASE_ADD_DATABASE_1)GetProcAddress(hmod, symbolName);
 
-    typedef LPVOID(__thiscall* QSQLDATABASE_SINGLE_PARAM_FUNC)(IQSqlDatabase*, LPVOID);
+    typedef LPVOID(__thiscall* QSQLDATABASE_SINGLE_PARAM_FUNC)(LPVOID, LPVOID);
 
     symbolName = "?setDatabaseName@QSqlDatabase@@QAEXABVQString@@@Z";
     auto fnQSqlDatabase_setDatabaseName = (QSQLDATABASE_SINGLE_PARAM_FUNC)GetProcAddress(hmod, symbolName);
@@ -62,7 +57,7 @@ int main()
     
     DWORD err = 0;
     LPVOID qDatabase = 0;
-    auto pQDatabase = (IQSqlDatabase*)fnQSqlDatabase_addDatabase1(&qDatabase, &qstrSqlDriver, &qstrDbConn);
+    auto pQDatabase = fnQSqlDatabase_addDatabase1(&qDatabase, &qstrSqlDriver, &qstrDbConn);
 
     auto dbName = "tss.db";
     len = lstrlenA(dbName);
