@@ -1,5 +1,10 @@
 #include <windows.h>
 
+__interface IQSqlDatabase
+{
+    void Dummy();
+};
+
 int main()
 {
     auto dbPasswd = "db161602241ec0dcc682d0ff6d481db010c686";
@@ -22,10 +27,6 @@ int main()
     }
     SetCurrentDirectoryW(cwd);
 
-    auto hmodKrnl32 = GetModuleHandleA("kernel32.dll");
-
-    typedef void (*SIMPLE_CONSTRUCTOR)(LPVOID);
-
     auto hmodQt5Core = LoadLibraryA("Qt5Core.dll");
     auto hmodQt5Sql = LoadLibraryA("Qt5Sql.dll");
 
@@ -42,12 +43,14 @@ int main()
     typedef LPVOID(*QSQLDATABASE_ADD_DATABASE_1)(LPVOID, LPVOID, LPVOID);
     auto fnQSqlDatabase_addDatabase1 = (QSQLDATABASE_ADD_DATABASE_1)GetProcAddress(hmod, symbolName);
 
+    typedef LPVOID(__thiscall* QSQLDATABASE_SINGLE_PARAM_FUNC)(IQSqlDatabase*, LPVOID);
+
     symbolName = "?setDatabaseName@QSqlDatabase@@QAEXABVQString@@@Z";
-    auto fnQSqlDatabase_setDatabaseName = (LPVOID)GetProcAddress(hmod, symbolName);
+    auto fnQSqlDatabase_setDatabaseName = (QSQLDATABASE_SINGLE_PARAM_FUNC)GetProcAddress(hmod, symbolName);
     symbolName = "?setPassword@QSqlDatabase@@QAEXABVQString@@@Z";
-    auto fnQSqlDatabase_setPassword = (LPVOID)GetProcAddress(hmod, symbolName);
+    auto fnQSqlDatabase_setPassword = (QSQLDATABASE_SINGLE_PARAM_FUNC)GetProcAddress(hmod, symbolName);
     symbolName = "?setConnectOptions@QSqlDatabase@@QAEXABVQString@@@Z";
-    auto fnQSqlDatabase_setConnectionOptions = (LPVOID)GetProcAddress(hmod, symbolName);
+    auto fnQSqlDatabase_setConnectionOptions = (QSQLDATABASE_SINGLE_PARAM_FUNC)GetProcAddress(hmod, symbolName);
     symbolName = "?open@QSqlDatabase@@QAE_NXZ";
     auto fnQSqlDatabase_open = (LPVOID)GetProcAddress(hmod, symbolName);
 
@@ -59,42 +62,21 @@ int main()
     
     DWORD err = 0;
     LPVOID qDatabase = 0;
-    auto pQDatabase = fnQSqlDatabase_addDatabase1(&qDatabase, &qstrSqlDriver, &qstrDbConn);
+    auto pQDatabase = (IQSqlDatabase*)fnQSqlDatabase_addDatabase1(&qDatabase, &qstrSqlDriver, &qstrDbConn);
 
     auto dbName = "tss.db";
     len = lstrlenA(dbName);
     auto qstrDbName = fnQStringFromAsciiHelper(dbName, len);
-    __asm {
-        lea eax, qstrDbName
-        push eax
-        mov ecx, pQDatabase
-        mov eax, fnQSqlDatabase_setDatabaseName
-        call eax
-        mov err, eax
-    }
+    fnQSqlDatabase_setDatabaseName(pQDatabase, &qstrDbName);
 
     len = lstrlenA(dbPasswd);
     auto qstrPasswd = fnQStringFromAsciiHelper(dbPasswd, len);
-    __asm {
-        lea eax, qstrPasswd
-        push eax
-        mov ecx, pQDatabase
-        mov eax, fnQSqlDatabase_setPassword
-        call eax
-        mov err, eax
-    }
+    fnQSqlDatabase_setPassword(pQDatabase, &qstrPasswd);
 
     auto connOptEmptyPassword = "QSQLITE_UPDATE_KEY=";
     len = lstrlenA(connOptEmptyPassword);
     auto qstrConnOptEmptyPassword = fnQStringFromAsciiHelper(connOptEmptyPassword, len);
-    __asm {
-        lea eax, qstrConnOptEmptyPassword
-        push eax
-        mov ecx, pQDatabase
-        mov eax, fnQSqlDatabase_setConnectionOptions
-        call eax
-        mov err, eax
-    }
+    fnQSqlDatabase_setConnectionOptions(pQDatabase, &qstrConnOptEmptyPassword);
 
     _asm {        
         mov ecx, pQDatabase
